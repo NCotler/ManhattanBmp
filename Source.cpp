@@ -6,6 +6,7 @@ using namespace std;
 
 #define IMAGE_SIZE 960
 //used to be 256
+//change image size to 1024 and dynamically allocate array or make array static to prevent stack overflow
 
 int main(int argc, char* argv[])
 {
@@ -42,6 +43,7 @@ int main(int argc, char* argv[])
 
 	char colorTable[1024];
 	// The following defines the array which holds the image.  
+	// consider Dynamic allocations or static for below
 	char bits[IMAGE_SIZE][IMAGE_SIZE] = { 0 };
 
 	int i, j, k, l;
