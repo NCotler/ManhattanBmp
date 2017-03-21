@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define IMAGE_SIZE 960
+#define IMAGE_SIZE 1024
 //used to be 256
 //change image size to 1024 and dynamically allocate array or make array static to prevent stack overflow
 
@@ -32,11 +32,11 @@ int main(int argc, char* argv[])
 	//place floats in dynamic alloc array
 	f.read(reinterpret_cast<char *>(arrayOfFloats), size); // # bytes
 
-	//print to console to check if array has coordinates
-	//for (unsigned i = 0; i < els; i++)
-	//	cout << "  " << arrayOfFloats[i];
-	//cout << endl;
-	
+														   //print to console to check if array has coordinates
+														   //for (unsigned i = 0; i < els; i++)
+														   //	cout << "  " << arrayOfFloats[i];
+														   //cout << endl;
+
 	BITMAPFILEHEADER bmfh;
 
 	BITMAPINFOHEADER bmih;
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 	char colorTable[1024];
 	// The following defines the array which holds the image.  
 	// consider Dynamic allocations or static for below
-	char bits[IMAGE_SIZE][IMAGE_SIZE] = { 0 };
+	static char bits[IMAGE_SIZE][IMAGE_SIZE] = { 0 };
 
 	int i, j, k, l;
 
@@ -85,16 +85,16 @@ int main(int argc, char* argv[])
 
 	// Build gray scale array of bits in image, 
 	/*for (i = 0; i < IMAGE_SIZE; i++) {
-		for (j = 0; j < IMAGE_SIZE; j++) {
-			//bits[i][j] = j; // displaying black to white left to right.
-			//bits[i][j] = 255 - ((i + j) / 2); // diagonal fade white to black lower left to upper right
-		}
-		k = i;
-		l = j;
+	for (j = 0; j < IMAGE_SIZE; j++) {
+	//bits[i][j] = j; // displaying black to white left to right.
+	//bits[i][j] = 255 - ((i + j) / 2); // diagonal fade white to black lower left to upper right
+	}
+	k = i;
+	l = j;
 	}*/
 
 	//go through array and change bmp accordingly
-	for (unsigned i = 0; i < els; i+=2)
+	for (unsigned i = 0; i < els; i += 2)
 	{
 		int latitude = 0;
 		int longitude = 0;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 		}
 
 		//check longitude
-		if (arrayOfFloats[i+1] > -73.914979 || arrayOfFloats[i + 1] < -74.045033)
+		if (arrayOfFloats[i + 1] > -73.914979 || arrayOfFloats[i + 1] < -74.045033)
 		{
 			//cout << "out of bounds " << arrayOfFloats[i + 1] << endl;
 		}
