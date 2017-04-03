@@ -5,11 +5,21 @@
 using namespace std;
 
 #define IMAGE_SIZE 1024
-//used to be 256
-//change image size to 1024 and dynamically allocate array or make array static to prevent stack overflow
+#define SouthernBound 40.700455
+#define NorthernBound 40.830509
+#define EasternBound -73.914979
+#define WesternBound -74.045033
+#define Map_SIZE 0.130054
 
 int main(int argc, char* argv[])
 {
+	const float myIMAGE_SIZE = IMAGE_SIZE;
+	const float mySouthernBound = SouthernBound;
+	const float myNorthernBound = NorthernBound;
+	const float myEasternBound = EasternBound;
+	const float myWesternBound = WesternBound;
+	const float myMap_SIZE = Map_SIZE;
+
 	ifstream f("L2Data10K.dat", ios::binary);
 
 	//get size of file and number of elements
@@ -17,8 +27,6 @@ int main(int argc, char* argv[])
 	long long size = f.tellg();
 	size_t els = static_cast<unsigned>(size / sizeof(float));
 	f.seekg(0);
-	//cout << size << endl;
-	//cout << els << endl;
 
 	//create a dynamic alloc array of floats.
 	float * arrayOfFloats = nullptr;
@@ -32,21 +40,17 @@ int main(int argc, char* argv[])
 	//place floats in dynamic alloc array
 	f.read(reinterpret_cast<char *>(arrayOfFloats), size); // # bytes
 
-														   //print to console to check if array has coordinates
-														   //for (unsigned i = 0; i < els; i++)
-														   //	cout << "  " << arrayOfFloats[i];
-														   //cout << endl;
-
 	BITMAPFILEHEADER bmfh;
 
 	BITMAPINFOHEADER bmih;
 
 	char colorTable[1024];
 	// The following defines the array which holds the image.  
-	// consider Dynamic allocations or static for below
+
+	// static in order to prevent stack overflow
 	static char bits[IMAGE_SIZE][IMAGE_SIZE] = { 0 };
 
-	int i, j, k, l;
+	int i, j;
 
 	// Define and open the output file. 
 	ofstream bmpOut("manhat.bmp", ios::out + ios::binary);
@@ -79,54 +83,63 @@ int main(int argc, char* argv[])
 	for (i = 0; i < 256; i++) {
 		j = i * 4;
 		colorTable[j] = colorTable[j + 1] = colorTable[j + 2] = colorTable[j + 3] = i;
-		// for your edification, try setting one of the first three values to 255 instead of i
-		// and see what it does to the generated bit map.
 	}
-
-	// Build gray scale array of bits in image, 
-	/*for (i = 0; i < IMAGE_SIZE; i++) {
-	for (j = 0; j < IMAGE_SIZE; j++) {
-	//bits[i][j] = j; // displaying black to white left to right.
-	//bits[i][j] = 255 - ((i + j) / 2); // diagonal fade white to black lower left to upper right
-	}
-	k = i;
-	l = j;
-	}*/
 
 	//go through array and change bmp accordingly
 	for (unsigned i = 0; i < els; i += 2)
 	{
 		int latitude = 0;
+		float flatit = 0;
 		int longitude = 0;
+		float flongit = 0;
 
 		//check latitude
-		if (arrayOfFloats[i] > 40.830509 || arrayOfFloats[i] < 40.700455)
+		if (arrayOfFloats[i] > NorthernBound || arrayOfFloats[i] < SouthernBound)
 		{
-			//cout << "out of bounds " << arrayOfFloats[i] << endl;
+			//cout << i << "is i and this is out of bounds " << arrayOfFloats[i] << endl;
 		}
 		else
 		{
 			//find latitude
-			latitude = int(((arrayOfFloats[i] - 40.700455) / 0.130054) * IMAGE_SIZE);
-			//cout << arrayOfFloats[i] << " lat is " << latitude << endl;
+			//latitude = int(((arrayOfFloats[i] - SouthernBound) / Map_SIZE) * IMAGE_SIZE);
+			flatit = arrayOfFloats[i];
+			__asm
+			{
+				FLD		flatit
+				FSUB	mySouthernBound
+				FDIV	myMap_SIZE
+				FMUL	myIMAGE_SIZE
+				FSTP	flatit
+			}
+			latitude = int(flatit);
 		}
 
 		//check longitude
-		if (arrayOfFloats[i + 1] > -73.914979 || arrayOfFloats[i + 1] < -74.045033)
+		if (arrayOfFloats[i + 1] >  EasternBound || arrayOfFloats[i + 1] < WesternBound)
 		{
 			//cout << "out of bounds " << arrayOfFloats[i + 1] << endl;
 		}
 		else
 		{
 			//find longitude
-			longitude = int(((arrayOfFloats[i + 1] - -74.045033) / 0.130054) * IMAGE_SIZE);
-			//cout << arrayOfFloats[i] << " long is " << latitude << endl;
+			//longitude = int(((arrayOfFloats[i + 1] - EasternBound) / Map_SIZE) * IMAGE_SIZE);
+			flongit = arrayOfFloats[i + 1];
+			__asm
+			{
+				FLD		flongit
+				FSUB	myWesternBound
+				FDIV	myMap_SIZE
+				FMUL	myIMAGE_SIZE
+				FSTP	flongit
+			}
+			longitude = int(flongit);
 		}
-
-		bits[latitude][longitude] = 255;
-		//cout << arrayOfFloats[i] << " lat is " << latitude << endl;
+		//place white pixel at coordinate
+		if (latitude > 0 && longitude > 0 && latitude < 1024 && latitude < 1024)
+		{
+			bits[latitude][longitude] = 255;
+		}
 	}
-
 
 	// Write out the bit map.  
 	char* workPtr;
